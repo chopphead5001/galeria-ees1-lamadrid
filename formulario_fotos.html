@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sumá tu foto - EES N°1 Manuel Belgrano</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --azul: #1a3a6b;
+    --azul-claro: #2563a8;
+    --dorado: #c8923a;
+    --crema: #f5f0e8;
+    --gris: #6b7280;
+    --blanco: #ffffff;
+    --verde: #3B6D11;
+    --verde-bg: #EAF3DE;
+    --rojo: #A32D2D;
+    --rojo-bg: #FCEBEB;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--crema);
+    color: #2c2c2c;
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--azul);
+    padding: 24px 32px 18px;
+    text-align: center;
+    border-bottom: 4px solid var(--dorado);
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    color: var(--blanco);
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  header p {
+    color: rgba(255,255,255,0.65);
+    font-size: 13px;
+    margin-top: 4px;
+    font-weight: 300;
+  }
+
+  .aviso {
+    background: #e8f0fb;
+    border-left: 4px solid var(--azul-claro);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--azul);
+    margin: 20px;
+    border-radius: 0 8px 8px 0;
+    line-height: 1.5;
+  }
+
+  .formulario {
+    padding: 0 20px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--azul);
+  }
+
+  label span {
+    color: var(--dorado);
+    margin-left: 2px;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  select,
+  textarea {
+    background: var(--blanco);
+    border: 1px solid #d1c9bc;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: #2c2c2c;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--azul-claro);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.5;
+  }
+
+  .zona-foto {
+    border: 2px dashed #c8b89a;
+    border-radius: 12px;
+    padding: 32px 20px;
+    text-align: center;
+    background: var(--blanco);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .zona-foto:hover, .zona-foto.drag { 
+    border-color: var(--azul-claro);
+    background: #f0f5fb;
+  }
+
+  .zona-foto input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .zona-icono { font-size: 36px; margin-bottom: 8px; }
+
+  .zona-texto {
+    font-size: 14px;
+    color: var(--gris);
+    line-height: 1.5;
+  }
+
+  .zona-texto strong { color: var(--azul); }
+
+  .preview-container {
+    display: none;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #d1c9bc;
+  }
+
+  .preview-container img {
+    width: 100%;
+    max-height: 240px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .preview-quitar {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .progreso-container {
+    display: none;
+    background: #e5ddd0;
+    border-radius: 20px;
+    height: 6px;
+    overflow: hidden;
+  }
+
+  .progreso-barra {
+    height: 100%;
+    background: var(--azul-claro);
+    border-radius: 20px;
+    width: 0%;
+    transition: width 0.3s;
+  }
+
+  .btn-enviar {
+    background: var(--azul);
+    color: var(--blanco);
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 15px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.15s;
+    margin-top: 4px;
+  }
+
+  .btn-enviar:hover { background: var(--azul-claro); }
+  .btn-enviar:disabled { background: #9ca3af; cursor: not-allowed; }
+
+  .mensaje {
+    display: none;
+    padding: 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  .mensaje.exito {
+    background: var(--verde-bg);
+    color: var(--verde);
+    border: 1px solid #97C459;
+  }
+
+  .mensaje.error {
+    background: var(--rojo-bg);
+    color: var(--rojo);
+    border: 1px solid #F09595;
+  }
+
+  .hint {
+    font-size: 11px;
+    color: var(--gris);
+    margin-top: 2px;
+  }
+
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 12px;
+    color: var(--gris);
+    border-top: 1px solid #e5ddd0;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sumá tu foto a la historia</h1>
+  <p>EES N°1 "Manuel Belgrano" · Gral. La Madrid</p>
+</header>
+
+<div class="aviso">
+  📋 Las fotos son revisadas por el Prof. Nicolás Rivarola y los alumnos del proyecto antes de publicarse en la galería.
+</div>
+
+<div class="formulario">
+
+  <div class="campo">
+    <label>Tu nombre completo <span>*</span></label>
+    <input type="text" id="nombre" placeholder="Ej: María García" required>
+  </div>
+
+  <div class="campo">
+    <label>Año de promoción <span>*</span></label>
+    <select id="promocion" required>
+      <option value="">Seleccioná el año...</option>
+    </select>
+  </div>
+
+  <div class="campo">
+    <label>¿Quiénes aparecen en la foto? <span>*</span></label>
+    <textarea id="quienes" placeholder="Ej: Juan Pérez, María García, Prof. González..." required></textarea>
+  </div>
+
+  <div class="campo">
+    <label>Contanos sobre este momento <span>*</span></label>
+    <textarea id="descripcion" placeholder="¿Dónde fue? ¿Qué estaban haciendo? ¿Qué recordás de ese día?" required></textarea>
+  </div>
+
+  <div class="campo">
+    <label>Tu contacto (opcional)</label>
+    <input type="text" id="contacto" placeholder="Email o teléfono">
+    <div class="hint">Solo para que podamos contactarte si tenemos dudas sobre la foto.</div>
+  </div>
+
+  <div class="campo">
+    <label>Tu foto <span>*</span></label>
+    <div class="zona-foto" id="zona-foto">
+      <input type="file" id="archivo-foto" accept="image/*">
+      <div class="zona-icono">📷</div>
+      <div class="zona-texto">
+        <strong>Tocá acá para elegir una foto</strong><br>
+        o arrastrala hasta acá<br>
+        <span style="font-size:12px">JPG, PNG · Máximo 10MB</span>
+      </div>
+    </div>
+    <div class="preview-container" id="preview-container">
+      <img id="preview-img" src="" alt="Preview">
+      <button class="preview-quitar" onclick="quitarFoto()">×</button>
+    </div>
+    <div class="progreso-container" id="progreso-container">
+      <div class="progreso-barra" id="progreso-barra"></div>
+    </div>
+  </div>
+
+  <div class="mensaje" id="mensaje"></div>
+
+  <button class="btn-enviar" id="btn-enviar" onclick="enviarFormulario()">
+    Enviar para revisión
+  </button>
+
+</div>
+
+<footer>
+  Proyecto de Restauración Histórica · Prof. Nicolás Rivarola · EES N°1 "Manuel Belgrano"
+</footer>
+
+<script>
+const CLOUDINARY_CLOUD = "dkgpq4tfx";
+const CLOUDINARY_PRESET = "ees1-lamadrid";
+const SHEET_ID = "1YiiJ7JbwM1Hjzm2t-fJVfazjtpWf7Xjyp7nLSSAXQDw";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby_P7Bm8HHHuMA3viSpWuzIeFOhO5O91ALdRDQd_vujvRMa-cLTFnU06rP5jbo0W7TCjA/exec";
+
+// Llenar años de promoción
+const selectPromo = document.getElementById("promocion");
+for (let y = 2025; y >= 1970; y--) {
+  const opt = document.createElement("option");
+  opt.value = y;
+  opt.textContent = y;
+  selectPromo.appendChild(opt);
+}
+["Década del 60", "Década del 50", "Década del 40"].forEach(d => {
+  const opt = document.createElement("option");
+  opt.value = d;
+  opt.textContent = d;
+  selectPromo.appendChild(opt);
+});
+
+// Preview de foto
+document.getElementById("archivo-foto").addEventListener("change", function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) {
+    mostrarMensaje("La foto no puede superar los 10MB.", "error");
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    document.getElementById("preview-img").src = ev.target.result;
+    document.getElementById("preview-container").style.display = "block";
+    document.getElementById("zona-foto").style.display = "none";
+  };
+  reader.readAsDataURL(file);
+});
+
+// Drag and drop
+const zona = document.getElementById("zona-foto");
+zona.addEventListener("dragover", e => { e.preventDefault(); zona.classList.add("drag"); });
+zona.addEventListener("dragleave", () => zona.classList.remove("drag"));
+zona.addEventListener("drop", e => {
+  e.preventDefault();
+  zona.classList.remove("drag");
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith("image/")) {
+    document.getElementById("archivo-foto").files = e.dataTransfer.files;
+    document.getElementById("archivo-foto").dispatchEvent(new Event("change"));
+  }
+});
+
+function quitarFoto() {
+  document.getElementById("archivo-foto").value = "";
+  document.getElementById("preview-container").style.display = "none";
+  document.getElementById("zona-foto").style.display = "block";
+}
+
+function mostrarMensaje(texto, tipo) {
+  const msg = document.getElementById("mensaje");
+  msg.textContent = texto;
+  msg.className = "mensaje " + tipo;
+  msg.style.display = "block";
+  msg.scrollIntoView({ behavior: "smooth" });
+}
+
+async function subirFotoCloudinary(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", CLOUDINARY_PRESET);
+  formData.append("folder", "ees1-lamadrid");
+
+  document.getElementById("progreso-container").style.display = "block";
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`);
+    
+    xhr.upload.onprogress = function(e) {
+      if (e.lengthComputable) {
+        const pct = (e.loaded / e.total) * 100;
+        document.getElementById("progreso-barra").style.width = pct + "%";
+      }
+    };
+
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        const data = JSON.parse(xhr.responseText);
+        resolve(data.secure_url);
+      } else {
+        reject(new Error("Error al subir la foto"));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error("Error de conexión"));
+    xhr.send(formData);
+  });
+}
+
+async function guardarEnSheet(datos) {
+  const params = new URLSearchParams({
+    nombre: datos.nombre,
+    promocion: datos.promocion,
+    quienes: datos.quienes,
+    descripcion: datos.descripcion,
+    contacto: datos.contacto,
+    foto: datos.foto,
+    timestamp: new Date().toLocaleString("es-AR")
+  });
+
+  await fetch(GOOGLE_SCRIPT_URL + "?" + params.toString(), { mode: "no-cors" });
+}
+
+async function enviarFormulario() {
+  const nombre = document.getElementById("nombre").value.trim();
+  const promocion = document.getElementById("promocion").value;
+  const quienes = document.getElementById("quienes").value.trim();
+  const descripcion = document.getElementById("descripcion").value.trim();
+  const contacto = document.getElementById("contacto").value.trim();
+  const archivo = document.getElementById("archivo-foto").files[0];
+
+  if (!nombre || !promocion || !quienes || !descripcion || !archivo) {
+    mostrarMensaje("Por favor completá todos los campos obligatorios y seleccioná una foto.", "error");
+    return;
+  }
+
+  const btn = document.getElementById("btn-enviar");
+  btn.disabled = true;
+  btn.textContent = "Subiendo foto...";
+  document.getElementById("mensaje").style.display = "none";
+
+  try {
+    const urlFoto = await subirFotoCloudinary(archivo);
+    
+    btn.textContent = "Guardando...";
+
+    await guardarEnSheet({ nombre, promocion, quienes, descripcion, contacto, foto: urlFoto });
+
+    btn.textContent = "¡Enviado!";
+    mostrarMensaje("✅ ¡Gracias! Tu foto fue enviada correctamente y será revisada por el Prof. Rivarola antes de publicarse en la galería.", "exito");
+
+    // Limpiar formulario
+    setTimeout(() => {
+      document.getElementById("nombre").value = "";
+      document.getElementById("promocion").value = "";
+      document.getElementById("quienes").value = "";
+      document.getElementById("descripcion").value = "";
+      document.getElementById("contacto").value = "";
+      quitarFoto();
+      document.getElementById("progreso-container").style.display = "none";
+      document.getElementById("progreso-barra").style.width = "0%";
+      btn.disabled = false;
+      btn.textContent = "Enviar para revisión";
+    }, 3000);
+
+  } catch(e) {
+    mostrarMensaje("❌ Hubo un error al subir la foto. Intentá de nuevo.", "error");
+    btn.disabled = false;
+    btn.textContent = "Enviar para revisión";
+  }
+}
+</script>
+</body>
+</html>
