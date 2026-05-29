@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galería Histórica - EES N°1 Manuel Belgrano</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --azul: #1a3a6b;
+    --azul-claro: #2563a8;
+    --dorado: #c8923a;
+    --crema: #f5f0e8;
+    --gris: #6b7280;
+    --blanco: #ffffff;
+    --naranja: #c8580a;
+    --naranja-bg: #FEF0E6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--crema); color: #2c2c2c; min-height: 100vh; }
+
+  header { background: var(--azul); padding: 28px 32px 20px; text-align: center; border-bottom: 4px solid var(--dorado); }
+  header h1 { font-family: 'Playfair Display', serif; color: var(--blanco); font-size: 28px; font-weight: 700; }
+  header p { color: rgba(255,255,255,0.65); font-size: 13px; margin-top: 4px; font-weight: 300; }
+
+  .barra-busqueda { background: var(--blanco); border-bottom: 1px solid #e5ddd0; padding: 14px 20px; }
+  .barra-busqueda input { width: 100%; border: 1px solid #d1c9bc; border-radius: 8px; padding: 8px 14px; font-size: 14px; font-family: 'DM Sans', sans-serif; background: var(--crema); color: #2c2c2c; outline: none; }
+  .barra-busqueda input:focus { border-color: var(--azul-claro); }
+
+  .promos-scroll { background: var(--blanco); border-bottom: 1px solid #e5ddd0; padding: 12px 20px; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+  .promos-scroll::-webkit-scrollbar { display: none; }
+
+  .btn-promo { background: var(--crema); border: 1px solid #d1c9bc; border-radius: 20px; padding: 6px 16px; font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--azul); cursor: pointer; white-space: nowrap; transition: all 0.15s; font-weight: 500; }
+  .btn-promo:hover { background: #e8e0d4; }
+  .btn-promo.activo { background: var(--azul); color: var(--blanco); border-color: var(--azul); }
+
+  .contenido { padding: 20px; }
+
+  .stats { display: flex; gap: 10px; margin-bottom: 20px; }
+  .stat { background: var(--blanco); border: 1px solid #e5ddd0; border-radius: 10px; padding: 12px 16px; flex: 1; text-align: center; }
+  .stat-numero { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--azul); font-weight: 700; }
+  .stat-label { font-size: 11px; color: var(--gris); margin-top: 2px; }
+
+  .titulo-seccion { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--azul); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--dorado); display: inline-block; }
+
+  .galeria { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-bottom: 32px; }
+
+  .foto-card { background: var(--blanco); border: 1px solid #e5ddd0; border-radius: 12px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
+  .foto-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(26,58,107,0.12); }
+
+  .foto-imagen { width: 100%; height: 200px; background: #e8e0d4; display: flex; align-items: center; justify-content: center; font-size: 40px; overflow: hidden; cursor: pointer; }
+  .foto-imagen img { width: 100%; height: 100%; object-fit: contain; background: #e8e0d4; }
+
+  .foto-info { padding: 14px; }
+  .foto-promo { display: inline-block; background: #e8f0fb; color: var(--azul-claro); font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; margin-bottom: 8px; }
+  .foto-desc { font-size: 13px; color: #2c2c2c; line-height: 1.5; margin-bottom: 6px; }
+  .foto-personas { font-size: 11px; color: var(--gris); margin-bottom: 10px; }
+
+  .btn-feedback { width: 100%; background: var(--naranja-bg); border: 1px solid #f0b070; border-radius: 8px; padding: 7px; font-size: 12px; font-family: 'DM Sans', sans-serif; color: var(--naranja); cursor: pointer; font-weight: 500; transition: background 0.15s; }
+  .btn-feedback:hover { background: #fde0c0; }
+
+  .cargando { text-align: center; padding: 60px 20px; color: var(--gris); }
+  .cargando-spinner { width: 36px; height: 36px; border: 3px solid #e5ddd0; border-top-color: var(--azul); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .sin-resultados { text-align: center; padding: 60px 20px; color: var(--gris); font-size: 14px; }
+  .sin-resultados span { font-size: 36px; display: block; margin-bottom: 12px; }
+
+  .error-msg { background: #fff3f3; border: 1px solid #fca5a5; border-radius: 10px; padding: 16px; color: #991b1b; font-size: 13px; margin: 20px; text-align: center; }
+
+  /* MODAL FOTO */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.visible { display: flex; }
+
+  .modal { background: var(--blanco); border-radius: 16px; max-width: 580px; width: 100%; overflow: hidden; max-height: 90vh; overflow-y: auto; }
+
+  .modal-img-container { width: 100%; background: #1a1a1a; display: flex; align-items: center; justify-content: center; min-height: 220px; position: relative; }
+  .modal-img-container img { max-width: 100%; max-height: 380px; object-fit: contain; display: block; transition: transform 0.3s; }
+
+  .modal-controles { position: absolute; bottom: 10px; right: 10px; display: flex; gap: 6px; }
+  .btn-rotar { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 8px; padding: 6px 10px; font-size: 16px; cursor: pointer; backdrop-filter: blur(4px); }
+  .btn-rotar:hover { background: rgba(255,255,255,0.25); }
+
+  .modal-body { padding: 20px; }
+  .modal-promo { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--azul); margin-bottom: 4px; }
+  .modal-enviado { font-size: 12px; color: var(--gris); margin-bottom: 12px; }
+  .modal-desc { font-size: 14px; line-height: 1.6; color: #2c2c2c; margin-bottom: 10px; }
+  .modal-personas { font-size: 13px; color: var(--azul-claro); font-weight: 500; margin-bottom: 16px; }
+
+  .modal-botones { display: flex; gap: 8px; }
+  .modal-cerrar { flex: 1; background: var(--azul); color: var(--blanco); border: none; border-radius: 8px; padding: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; }
+  .modal-btn-feedback { flex: 1; background: var(--naranja-bg); border: 1px solid #f0b070; color: var(--naranja); border-radius: 8px; padding: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; font-weight: 500; }
+
+  /* MODAL FEEDBACK */
+  .modal-feedback-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+  .modal-feedback-overlay.visible { display: flex; }
+  .modal-feedback { background: var(--blanco); border-radius: 16px; max-width: 480px; width: 100%; padding: 24px; }
+  .feedback-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .feedback-badge { background: var(--naranja-bg); border: 1px solid #f0b070; color: var(--naranja); font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+  .feedback-titulo { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--azul); }
+  .feedback-ref { font-size: 12px; color: var(--gris); margin-bottom: 16px; padding: 8px 12px; background: var(--crema); border-radius: 8px; line-height: 1.4; }
+  .feedback-campo { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+  .feedback-campo label { font-size: 12px; font-weight: 500; color: var(--azul); }
+  .feedback-campo input, .feedback-campo textarea { border: 1px solid #d1c9bc; border-radius: 8px; padding: 9px 12px; font-size: 13px; font-family: 'DM Sans', sans-serif; color: #2c2c2c; outline: none; background: var(--crema); }
+  .feedback-campo textarea { resize: vertical; min-height: 80px; }
+  .feedback-campo input:focus, .feedback-campo textarea:focus { border-color: var(--naranja); }
+  .feedback-botones { display: flex; gap: 8px; margin-top: 4px; }
+  .feedback-cancelar { flex: 1; background: var(--crema); border: 1px solid #d1c9bc; color: var(--gris); border-radius: 8px; padding: 10px; font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; }
+  .feedback-enviar { flex: 2; background: var(--naranja); border: none; color: white; border-radius: 8px; padding: 10px; font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; font-weight: 500; }
+  .feedback-enviar:disabled { background: #ccc; cursor: not-allowed; }
+  .feedback-ok { display: none; text-align: center; padding: 20px 0; }
+  .feedback-ok span { font-size: 36px; display: block; margin-bottom: 8px; }
+  .feedback-ok p { font-size: 14px; color: var(--gris); }
+
+  footer { text-align: center; padding: 20px; font-size: 12px; color: var(--gris); border-top: 1px solid #e5ddd0; margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Nuestra Historia</h1>
+  <p>EES N°1 "Manuel Belgrano" · Gral. La Madrid · Desde 1940</p>
+</header>
+
+<div class="barra-busqueda">
+  <input type="text" id="buscador" placeholder="Buscar por nombre, descripción o promoción...">
+</div>
+
+<div class="promos-scroll" id="filtros-promo">
+  <button class="btn-promo activo" onclick="filtrarPromo('TODAS', this)">Todas las promociones</button>
+</div>
+
+<div class="contenido">
+  <div class="stats" id="stats" style="display:none">
+    <div class="stat"><div class="stat-numero" id="total-fotos">0</div><div class="stat-label">fotos publicadas</div></div>
+    <div class="stat"><div class="stat-numero" id="total-promos">0</div><div class="stat-label">promociones</div></div>
+  </div>
+  <div id="cargando" class="cargando"><div class="cargando-spinner"></div>Cargando el archivo histórico...</div>
+  <div id="error" class="error-msg" style="display:none"></div>
+  <div id="contenedor-galeria"></div>
+</div>
+
+<!-- Modal foto -->
+<div class="modal-overlay" id="modal" onclick="cerrarModalFoto(event)">
+  <div class="modal">
+    <div class="modal-img-container" id="modal-img-container">
+      <span id="modal-placeholder" style="font-size:60px;color:#aaa">📷</span>
+      <div class="modal-controles" id="modal-controles" style="display:none">
+        <button class="btn-rotar" onclick="rotarFoto(-90)" title="Girar izquierda">↺</button>
+        <button class="btn-rotar" onclick="rotarFoto(90)" title="Girar derecha">↻</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-promo" id="modal-promo"></div>
+      <div class="modal-enviado" id="modal-enviado"></div>
+      <div class="modal-desc" id="modal-desc"></div>
+      <div class="modal-personas" id="modal-personas"></div>
+      <div class="modal-botones">
+        <button class="modal-cerrar" onclick="document.getElementById('modal').classList.remove('visible')">Cerrar</button>
+        <button class="modal-btn-feedback" id="modal-btn-feedback" onclick="abrirFeedback()">💬 ¿Sabés más?</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal feedback -->
+<div class="modal-feedback-overlay" id="modal-feedback" onclick="cerrarModalFeedback(event)">
+  <div class="modal-feedback" onclick="event.stopPropagation()">
+    <div class="feedback-header">
+      <span class="feedback-badge">FEEDBACK</span>
+    </div>
+    <div class="feedback-titulo">¿Sabés más sobre esta foto?</div>
+    <div class="feedback-ref" id="feedback-ref"></div>
+
+    <div id="feedback-form">
+      <div class="feedback-campo">
+        <label>Tu nombre (opcional)</label>
+        <input type="text" id="fb-nombre" placeholder="Ej: María García">
+      </div>
+      <div class="feedback-campo">
+        <label>¿Qué querés agregar o corregir? *</label>
+        <textarea id="fb-mensaje" placeholder="Ej: La foto es de 1987, no de 1986. Las personas que aparecen son..."></textarea>
+      </div>
+      <div class="feedback-botones">
+        <button class="feedback-cancelar" onclick="document.getElementById('modal-feedback').classList.remove('visible')">Cancelar</button>
+        <button class="feedback-enviar" id="fb-btn-enviar" onclick="enviarFeedback()">Enviar feedback</button>
+      </div>
+    </div>
+
+    <div class="feedback-ok" id="feedback-ok">
+      <span>✅</span>
+      <p>¡Gracias! Tu aporte fue enviado al equipo del proyecto para que lo revisen.</p>
+    </div>
+  </div>
+</div>
+
+<footer>Proyecto de Restauración Histórica · Prof. Nicolás Rivarola · EES N°1 "Manuel Belgrano"</footer>
+
+<script>
+const SHEET_ID = "1YiiJ7JbwM1Hjzm2t-fJVfazjtpWf7Xjyp7nLSSAXQDw";
+const SHEET_NAME = "Respuestas de formulario 1";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzChFqVzrWMuv0KgxoTbkD1cFHei6C5s8FcGYOuNHexEeVtpefu6xSocGNLv2VULikpKw/exec";
+const URL_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+let todasLasFotos = [];
+let promoActiva = "TODAS";
+let fotoActual = null;
+let rotacionActual = 0;
+
+async function cargarFotos() {
+  try {
+    const res = await fetch(URL_SHEET);
+    const texto = await res.text();
+    const json = JSON.parse(texto.substring(47, texto.length - 2));
+    const filas = json.table.rows;
+
+    // Primero mapear todas las filas con su índice real
+    const todasFilas = filas.map((f, idx) => ({
+      rowIndex: idx + 2,
+      estado: f.c[7] && f.c[7].v ? f.c[7].v.toString().trim().toUpperCase() : "",
+      promocion: f.c[2] ? f.c[2].v.toString() : "",
+      f: f
+    }));
+
+    todasLasFotos = todasFilas
+      .filter(r => r.estado === "APROBADO" && r.promocion !== "FEEDBACK")
+      .map((r, idx) => ({
+        rowIndex: r.rowIndex,
+        timestamp: r.f.c[0] ? r.f.c[0].v : "",
+        nombre:    r.f.c[1] ? r.f.c[1].v : "",
+        promo:     r.f.c[2] ? r.f.c[2].v.toString() : "",
+        quienes:   r.f.c[3] ? r.f.c[3].v : "",
+        desc:      r.f.c[4] ? r.f.c[4].v : "",
+        contacto:  r.f.c[5] ? r.f.c[5].v : "",
+        foto:      r.f.c[6] ? r.f.c[6].v : ""
+      }));
+
+    document.getElementById("cargando").style.display = "none";
+
+    if (todasLasFotos.length === 0) {
+      document.getElementById("contenedor-galeria").innerHTML =
+        '<div class="sin-resultados"><span>📷</span>Todavía no hay fotos aprobadas.<br>¡Sé el primero en compartir un recuerdo!</div>';
+      return;
+    }
+
+    const decadasOrden = ["Década del 40", "Década del 50", "Década del 60"];
+    const promos = [...new Set(todasLasFotos.map(f => f.promo))].sort((a,b) => {
+      const ai = decadasOrden.indexOf(a), bi = decadasOrden.indexOf(b);
+      if (ai !== -1 && bi !== -1) return ai - bi;
+      if (ai !== -1) return -1;
+      if (bi !== -1) return 1;
+      return a - b;
+    });
+
+    document.getElementById("total-fotos").textContent = todasLasFotos.length;
+    document.getElementById("total-promos").textContent = promos.length;
+    document.getElementById("stats").style.display = "flex";
+
+    const contenedorFiltros = document.getElementById("filtros-promo");
+    promos.forEach(p => {
+      const btn = document.createElement("button");
+      btn.className = "btn-promo";
+      btn.textContent = p.startsWith("Década") ? p : "Promoción " + p;
+      btn.onclick = () => filtrarPromo(p, btn);
+      contenedorFiltros.appendChild(btn);
+    });
+
+    renderGaleria(todasLasFotos);
+  } catch(e) {
+    document.getElementById("cargando").style.display = "none";
+    document.getElementById("error").style.display = "block";
+    document.getElementById("error").textContent = "No se pudo cargar la galería. Verificá que el Sheet sea público.";
+  }
+}
+
+function filtrarPromo(promo, btn) {
+  promoActiva = promo;
+  document.querySelectorAll(".btn-promo").forEach(b => b.classList.remove("activo"));
+  btn.classList.add("activo");
+  aplicarFiltros();
+}
+
+function aplicarFiltros() {
+  const busqueda = document.getElementById("buscador").value.toLowerCase();
+  let filtradas = todasLasFotos;
+  if (promoActiva !== "TODAS") filtradas = filtradas.filter(f => f.promo === promoActiva);
+  if (busqueda) filtradas = filtradas.filter(f =>
+    f.desc.toLowerCase().includes(busqueda) ||
+    f.quienes.toLowerCase().includes(busqueda) ||
+    f.nombre.toLowerCase().includes(busqueda) ||
+    f.promo.toLowerCase().includes(busqueda)
+  );
+  renderGaleria(filtradas);
+}
+
+function renderGaleria(fotos) {
+  const contenedor = document.getElementById("contenedor-galeria");
+  if (fotos.length === 0) {
+    contenedor.innerHTML = '<div class="sin-resultados"><span>🔍</span>No se encontraron fotos con ese filtro.</div>';
+    return;
+  }
+
+  const decadasOrden = ["Década del 40", "Década del 50", "Década del 60"];
+  const porPromo = {};
+  fotos.forEach(f => {
+    if (!porPromo[f.promo]) porPromo[f.promo] = [];
+    porPromo[f.promo].push(f);
+  });
+
+  const promosSorted = Object.keys(porPromo).sort((a,b) => {
+    const ai = decadasOrden.indexOf(a), bi = decadasOrden.indexOf(b);
+    if (ai !== -1 && bi !== -1) return ai - bi;
+    if (ai !== -1) return -1;
+    if (bi !== -1) return 1;
+    return a - b;
+  });
+
+  let html = "";
+  promosSorted.forEach(promo => {
+    html += `<div class="titulo-seccion">${promo.startsWith("Década") ? promo : "Promoción " + promo}</div>`;
+    html += '<div class="galeria">';
+    porPromo[promo].forEach(foto => {
+      const fotoJson = encodeURIComponent(JSON.stringify(foto));
+      html += `
+        <div class="foto-card">
+          <div class="foto-imagen" onclick="abrirModal(decodeURIComponent('${fotoJson}'))">
+            ${foto.foto ? `<img src="${foto.foto}" onerror="this.parentElement.innerHTML='📷'" alt="Foto">` : '📷'}
+          </div>
+          <div class="foto-info">
+            <span class="foto-promo">${promo.startsWith("Década") ? promo : "Promoción " + promo}</span>
+            <div class="foto-desc">${foto.desc || "Sin descripción"}</div>
+            <div class="foto-personas">👥 ${foto.quienes || "Sin especificar"}</div>
+            <button class="btn-feedback" onclick="abrirFeedbackDesdeCard(decodeURIComponent('${fotoJson}'))">💬 ¿Sabés más sobre esta foto?</button>
+          </div>
+        </div>`;
+    });
+    html += '</div>';
+  });
+
+  contenedor.innerHTML = html;
+}
+
+function abrirModal(fotoJson) {
+  const foto = JSON.parse(fotoJson);
+  fotoActual = foto;
+  rotacionActual = 0;
+
+  const promo = foto.promo.startsWith("Década") ? foto.promo : "Promoción " + foto.promo;
+  document.getElementById("modal-promo").textContent = promo;
+  document.getElementById("modal-enviado").textContent = "Enviado por: " + (foto.nombre || "Anónimo");
+  document.getElementById("modal-desc").textContent = foto.desc || "Sin descripción";
+  document.getElementById("modal-personas").textContent = foto.quienes ? "👥 " + foto.quienes : "";
+
+  const container = document.getElementById("modal-img-container");
+  const placeholder = document.getElementById("modal-placeholder");
+  const controles = document.getElementById("modal-controles");
+
+  if (foto.foto) {
+    placeholder.style.display = "none";
+    controles.style.display = "flex";
+    // Buscar img existente o crear
+    let img = container.querySelector("img");
+    if (!img) {
+      img = document.createElement("img");
+      img.onerror = () => { placeholder.style.display = "block"; img.style.display = "none"; controles.style.display = "none"; };
+      container.insertBefore(img, controles);
+    }
+    img.src = foto.foto;
+    img.style.transform = "rotate(0deg)";
+    img.style.display = "block";
+  } else {
+    placeholder.style.display = "block";
+    controles.style.display = "none";
+    const img = container.querySelector("img");
+    if (img) img.style.display = "none";
+  }
+
+  document.getElementById("modal").classList.add("visible");
+}
+
+function rotarFoto(grados) {
+  rotacionActual = (rotacionActual + grados + 360) % 360;
+  const img = document.querySelector("#modal-img-container img");
+  if (img) img.style.transform = `rotate(${rotacionActual}deg)`;
+}
+
+function cerrarModalFoto(e) {
+  if (e.target === document.getElementById("modal")) {
+    document.getElementById("modal").classList.remove("visible");
+  }
+}
+
+function abrirFeedback() {
+  if (!fotoActual) return;
+  mostrarFeedbackModal(fotoActual);
+}
+
+function abrirFeedbackDesdeCard(fotoJson) {
+  const foto = JSON.parse(fotoJson);
+  fotoActual = foto;
+  mostrarFeedbackModal(foto);
+}
+
+function mostrarFeedbackModal(foto) {
+  const promo = foto.promo.startsWith("Década") ? foto.promo : "Promoción " + foto.promo;
+  const linkFila = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit#gid=0&range=A${foto.rowIndex}`;
+  document.getElementById("feedback-ref").innerHTML = `📍 Foto de <strong>${promo}</strong> · "${(foto.desc || "Sin descripción").substring(0, 60)}${foto.desc && foto.desc.length > 60 ? "..." : ""}"`;
+  document.getElementById("fb-nombre").value = "";
+  document.getElementById("fb-mensaje").value = "";
+  document.getElementById("feedback-form").style.display = "block";
+  document.getElementById("feedback-ok").style.display = "none";
+  document.getElementById("fb-btn-enviar").disabled = false;
+  document.getElementById("fb-btn-enviar").textContent = "Enviar feedback";
+
+  // Guardar link a fila original para enviarlo
+  document.getElementById("modal-feedback").dataset.linkFila = linkFila;
+  document.getElementById("modal-feedback").dataset.fotoPromo = promo;
+  document.getElementById("modal-feedback").dataset.fotoDesc = foto.desc || "";
+  document.getElementById("modal-feedback").dataset.fotoRowIndex = foto.rowIndex;
+
+  document.getElementById("modal-feedback").classList.add("visible");
+}
+
+function cerrarModalFeedback(e) {
+  if (e.target === document.getElementById("modal-feedback")) {
+    document.getElementById("modal-feedback").classList.remove("visible");
+  }
+}
+
+async function enviarFeedback() {
+  const mensaje = document.getElementById("fb-mensaje").value.trim();
+  if (!mensaje) { alert("Por favor escribí tu aporte antes de enviar."); return; }
+
+  const btn = document.getElementById("fb-btn-enviar");
+  btn.disabled = true;
+  btn.textContent = "Enviando...";
+
+  const overlay = document.getElementById("modal-feedback");
+  const linkFila = overlay.dataset.linkFila;
+  const fotoPromo = overlay.dataset.fotoPromo;
+  const fotoDesc = overlay.dataset.fotoDesc;
+  const rowIndex = overlay.dataset.fotoRowIndex;
+
+  const params = new URLSearchParams({
+    timestamp: new Date().toLocaleString("es-AR"),
+    nombre: document.getElementById("fb-nombre").value.trim() || "Anónimo",
+    promocion: "FEEDBACK",
+    quienes: `FEEDBACK sobre fila ${rowIndex} - ${fotoPromo}`,
+    descripcion: mensaje,
+    contacto: `Foto original: ${fotoDesc.substring(0, 80)}`,
+    foto: linkFila,
+    estado: "FEEDBACK"
+  });
+
+  await fetch(SCRIPT_URL + "?" + params.toString(), { mode: "no-cors" });
+
+  document.getElementById("feedback-form").style.display = "none";
+  document.getElementById("feedback-ok").style.display = "block";
+
+  setTimeout(() => {
+    document.getElementById("modal-feedback").classList.remove("visible");
+  }, 3000);
+}
+
+document.getElementById("buscador").addEventListener("input", aplicarFiltros);
+cargarFotos();
+</script>
+</body>
+</html>
